@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - DermSchedule</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-container {
+            min-height: 100vh;
+            background: var(--gray-50);
+        }
+
+        .dashboard-header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid;
+        }
+
+        .stat-card.primary {
+            border-color: var(--primary);
+        }
+
+        .stat-card.warning {
+            border-color: var(--warning);
+        }
+
+        .stat-card.success {
+            border-color: var(--success);
+        }
+
+        .stat-card.danger {
+            border-color: var(--danger);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.25rem;
+        }
+
+        .appointments-table {
+            width: 100%;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .appointments-table th {
+            background: var(--gray-100);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-700);
+        }
+
+        .appointments-table td {
+            padding: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .appointments-table tr:hover {
+            background: var(--gray-50);
+        }
+
+        .emergency-row {
+            background: hsl(5, 85%, 97%) !important;
+            border-left: 4px solid var(--danger);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-lg);
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-500);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+        }
+
+        .sms-log-item {
+            padding: 1rem;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+
+        .sms-log-item.sent {
+            background: var(--primary-light);
+        }
+
+        .sms-log-item.response {
+            background: var(--success);
+            color: white;
+        }
+
+        .tab-container {
+            border-bottom: 2px solid var(--gray-200);
+            margin-bottom: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-600);
+            transition: all var(--transition-fast);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="container">
+                <div class="dashboard-title">
+                    <div>
+                        <h1 style="margin-bottom: 0.25rem;">DermSchedule Admin</h1>
+                        <p style="color: var(--gray-600); margin: 0;">Demo Dermatology Clinic</p>
+                    </div>
+                    <div>
+                        <a href="booking.html" class="btn btn-primary">+ New Appointment</a>
+                        <a href="index.html" class="btn btn-secondary" style="margin-left: 0.5rem;">Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Stats Row -->
+            <div class="stats-row">
+                <div class="stat-card primary">
+                    <div class="stat-value" id="statTodayTotal">0</div>
+                    <div class="stat-label">Today's Appointments</div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-value" id="statPending">0</div>
+                    <div class="stat-label">Pending Confirmations</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-value" id="statConfirmed">0</div>
+                    <div class="stat-label">Confirmed</div>
+                </div>
+
+                <div class="stat-card danger">
+                    <div class="stat-value" id="statEmergency">0</div>
+                    <div class="stat-label">Emergency Flags</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="appointments">Appointments</button>
+                    <button class="tab" data-tab="sms">SMS Simulator</button>
+                    <button class="tab" data-tab="waitlist">Waitlist</button>
+                </div>
+            </div>
+
+            <!-- Appointments Tab -->
+            <div class="tab-content active" id="appointmentsTab">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Upcoming Appointments</h3>
+                    </div>
+
+                    <table class="appointments-table" id="appointmentsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Type</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appointmentsTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                                    Loading appointments...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SMS Simulator Tab -->
+            <div class="tab-content" id="smsTab">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">SMS Simulator</h3>
+                        <p style="color: var(--gray-600); font-size: 0.875rem; margin-top: 0.5rem;">
+                            Simulate patient responses to SMS confirmations (replaces real Twilio for MVP)
+                        </p>
+                    </div>
+
+                    <div id="smsLogContainer">
+                        <p style="color: var(--gray-500); text-align: center; padding: 2rem;">
+                            Loading SMS log...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waitlist Tab -->
+            <div class="tab-content" id="waitlistTab">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Waitlist Management</h3>
+                    </div>
+
+                    <div id="waitlistContainer">
+                        <p style="color: var(--gray-500); text-align: center; padding: 2rem;">
+                            No patients on waitlist
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Details Modal -->
+    <div class="modal" id="appointmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Appointment Details</h3>
+                <button class="modal-close" onclick="closeModal('appointmentModal')">×</button>
+            </div>
+            <div id="appointmentDetails"></div>
+        </div>
+    </div>
+
+    <!-- SMS Response Modal -->
+    <div class="modal" id="smsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Simulate SMS Response</h3>
+                <button class="modal-close" onclick="closeModal('smsModal')">×</button>
+            </div>
+            <div id="smsModalContent"></div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

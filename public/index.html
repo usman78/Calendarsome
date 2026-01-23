@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DermSchedule - Smart Booking for Dermatology Practices</title>
+  <meta name="description" content="Reduce no-shows by 40% with smart triage and automated waitlist management specifically designed for dermatology practices.">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Landing Page Specific Styles */
+    .hero {
+      background: linear-gradient(135deg, hsl(195, 85%, 45%) 0%, hsl(195, 85%, 35%) 100%);
+      color: white;
+      padding: 5rem 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="%23ffffff"/></svg>') no-repeat bottom;
+      background-size: cover;
+      opacity: 0.1;
+    }
+    
+    .hero h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      color: white;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .hero p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      opacity: 0.95;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .hero-cta {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .features {
+      padding: 4rem 0;
+      background: white;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    
+    .feature-card {
+      text-align: center;
+      padding: 2rem;
+      background: var(--gray-50);
+      border-radius: var(--radius-lg);
+      transition: transform var(--transition-base);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .feature-title {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: var(--gray-900);
+    }
+    
+    .stats {
+      padding: 4rem 0;
+      background: linear-gradient(135deg, var(--primary-light) 0%, white 100%);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .stat-card {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: var(--font-display);
+    }
+    
+    .stat-label {
+      color: var(--gray-600);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Stop Losing $200+ Per No-Show</h1>
+      <p>Smart triage + automated waitlists for dermatology practices. Reduce no-shows by 40% and capture ghost revenue automatically.</p>
+      <div class="hero-cta">
+        <a href="booking.html" class="btn btn-primary btn-lg">Book Demo Appointment</a>
+        <a href="admin.html" class="btn btn-secondary btn-lg" style="margin-left: 1rem; background: rgba(255,255,255,0.2); color: white; border-color: white;">View Admin Dashboard</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="container">
+      <h2 class="text-center">Why Dermatology Practices Choose DermSchedule</h2>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3 class="feature-title">Smart Triage</h3>
+          <p>Automatically route medical vs cosmetic appointments with intelligent questionnaires that flag emergencies.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📱</div>
+          <h3 class="feature-title">Graduated Confirmations</h3>
+          <p>SMS confirmations at T-72h, reminders at T-48h, auto-cancel at T-24h. No-show rate drops by 40%.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">Waitlist Cascade</h3>
+          <p>Canceled slot? Instant SMS to top 5 waitlist patients. First responder gets it. Zero downtime.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">💳</div>
+          <h3 class="feature-title">Deposit Collection</h3>
+          <p>Cosmetic appointments require $50 deposit. No-show? Deposit charged automatically. Ghost revenue captured.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📸</div>
+          <h3 class="feature-title">Photo Upload</h3>
+          <p>Patients upload condition photos during booking. Increases commitment and provides clinical context.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3 class="feature-title">HIPAA-Ready</h3>
+          <p>Built with compliance in mind. Audit logging, encrypted storage path, and access controls.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="container">
+      <h2 class="text-center">The Cost of No-Shows</h2>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">$200+</div>
+          <div class="stat-label">Lost Per No-Show</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-number">18%</div>
+          <div class="stat-label">Industry No-Show Rate</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-number">40%</div>
+          <div class="stat-label">Reduction with DermSchedule</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-number">$3,200</div>
+          <div class="stat-label">Avg Monthly Recovery</div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-3">
+        <a href="booking.html" class="btn btn-primary btn-lg">Try It Now - Book a Demo Appointment</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="features" style="background: var(--gray-50);">
+    <div class="container-narrow">
+      <h2 class="text-center mb-3">How It Works</h2>
+      
+      <div class="card mb-2">
+        <h3>Step 1: Patient Books Online</h3>
+        <p>Multi-step triage (New/Existing → Medical/Cosmetic → Details + Photo). Takes 2 minutes but increases commitment.</p>
+      </div>
+      
+      <div class="card mb-2">
+        <h3>Step 2: Automated Confirmations</h3>
+        <p>72 hours before: "Confirm your appointment: YES/NO"<br>
+           48 hours: Reminder if no response<br>
+           24 hours: Auto-cancel if still pending → Waitlist blast</p>
+      </div>
+      
+      <div class="card mb-2">
+        <h3>Step 3: Waitlist Fills Gaps</h3>
+        <p>Cancellation? Top 5 waitlist patients get instant SMS. First to claim gets the slot. Race condition handled.</p>
+      </div>
+      
+      <div class="card">
+        <h3>Step 4: Capture Ghost Revenue</h3>
+        <p>Cosmetic no-show? Deposit charged. Medical no-show? Flagged for review. Average clinic recovers $3,200/month.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer CTA -->
+  <section class="hero" style="padding: 3rem 0;">
+    <div class="container text-center">
+      <h2 style="color: white; margin-bottom: 1rem;">Ready to Reduce No-Shows?</h2>
+      <p style="color: rgba(255,255,255,0.9); margin-bottom: 2rem;">Experience the full booking flow as a patient, or explore the admin dashboard.</p>
+      <div>
+        <a href="booking.html" class="btn btn-primary btn-lg">Book Demo Appointment</a>
+        <a href="admin.html" class="btn btn-secondary btn-lg" style="margin-left: 1rem; background: rgba(255,255,255,0.2); color: white; border-color: white;">View Admin Dashboard</a>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background: var(--gray-900); color: var(--gray-300); padding: 2rem 0; text-align: center;">
+    <div class="container">
+      <p>&copy; 2026 DermSchedule. Built for dermatology practices. MVP prototype.</p>
+      <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+        <a href="#" style="color: var(--gray-400);">Privacy</a> | 
+        <a href="#" style="color: var(--gray-400); margin-left: 1rem;">Terms</a> |
+        <a href="#" style="color: var(--gray-400); margin-left: 1rem;">Contact</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>
