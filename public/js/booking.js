@@ -117,7 +117,13 @@ function initializeStep3() {
         bookingState.appointmentTypeName = selectedOption.text;
     });
 
-    nextBtn.addEventListener('click', () => goToStep(4));
+    nextBtn.addEventListener('click', () => {
+        // Validate Step 3 before proceeding
+        if (!validateStep3()) {
+            return; // Don't proceed if validation fails
+        }
+        goToStep(4);
+    });
     backBtn.addEventListener('click', () => goToStep(2));
 }
 
@@ -245,6 +251,55 @@ function checkEmergencyKeywords() {
         alert.style.display = 'block';
     } else {
         alert.style.display = 'none';
+    }
+}
+
+// Validate Step 3: Appointment Type and Symptoms
+function validateStep3() {
+    clearErrorMessages();
+
+    // Check if appointment type is selected
+    if (!bookingState.appointmentTypeId) {
+        showError('Please select an appointment type');
+        return false;
+    }
+
+    // For medical appointments, symptoms are required
+    if (bookingState.category === 'medical' && !bookingState.symptoms.trim()) {
+        showError('Please describe your symptoms or concern. This helps us prepare for your visit.');
+        return false;
+    }
+
+    return true;
+}
+
+// Show error message
+function showError(message) {
+    const existingError = document.getElementById('validationError');
+    if (existingError) {
+        existingError.remove();
+    }
+
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'validationError';
+    errorDiv.className = 'alert alert-danger';
+    errorDiv.style.marginTop = '1rem';
+    errorDiv.innerHTML = `<strong>⚠️ Validation Error</strong><br>${message}`;
+
+    // Insert before the buttons
+    const currentStep = document.querySelector('.booking-step.active');
+    const buttons = currentStep.querySelector('.mt-3');
+    buttons.parentNode.insertBefore(errorDiv, buttons);
+
+    // Scroll to error
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// Clear error messages
+function clearErrorMessages() {
+    const existingError = document.getElementById('validationError');
+    if (existingError) {
+        existingError.remove();
     }
 }
 
@@ -378,7 +433,7 @@ async function submitBooking() {
         }
     } catch (error) {
         console.error('Booking error:', error);
-        alert(`Error: ${error.message}`);
+        showPersistentError(`Booking failed: ${error.message}`);
     } finally {
         showLoading(false);
     }
@@ -411,4 +466,27 @@ function showLoading(show) {
     } else {
         overlay.classList.remove('active');
     }
+}
+
+// Show persistent error (doesn't auto-dismiss)
+function showPersistentError(message) {
+    clearErrorMessages();
+
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'validationError';
+    errorDiv.className = 'alert alert-danger';
+    errorDiv.style.marginTop = '1rem';
+    errorDiv.innerHTML = `
+    <strong>⚠️ Error</strong><br>
+    ${message}<br>
+    <button class="btn btn-secondary" style="margin-top: 0.5rem;" onclick="clearErrorMessages()">Dismiss</button>
+  `;
+
+    // Insert at the current step
+    const currentStep = document.querySelector('.booking-step.active');
+    const buttons = currentStep.querySelector('.mt-3');
+    buttons.parentNode.insertBefore(errorDiv, buttons);
+
+    // Scroll to error
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
