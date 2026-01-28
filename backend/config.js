@@ -2,7 +2,7 @@
 module.exports = {
   // Server configuration
   port: process.env.PORT || 3001,
-
+  host: process.env.HOST || '0.0.0.0',
   // Database configuration
   database: {
     filename: './backend/derm_bookings.db'

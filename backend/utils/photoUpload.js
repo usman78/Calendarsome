@@ -54,15 +54,77 @@ const upload = multer({
     }
 });
 
+const { put, del } = require('@vercel/blob');
+
+// Check if Vercel Blob is configured
+const hasBlobStorage = !!process.env.BLOB_READ_WRITE_TOKEN;
+
 /**
  * Middleware for single photo upload
+ * Supports both Local Disk (Multer) and Vercel Blob
  */
-const uploadSinglePhoto = upload.single('photo');
+const uploadSinglePhoto = (req, res, next) => {
+    if (hasBlobStorage) {
+        // For Vercel Blob, we handle upload in the route handler or use a different middleware
+        // But since we're adapting an existing Multer flow, we'll use a memory storage multer
+        // to get the file buffer, then upload to Blob
+        const memoryUpload = multer({
+            storage: multer.memoryStorage(),
+            fileFilter: fileFilter,
+            limits: { fileSize: config.uploads.maxFileSize }
+        }).single('photo');
+
+        memoryUpload(req, res, async (err) => {
+            if (err) return res.status(400).json({ error: err.message });
+            if (!req.file) return next();
+
+            try {
+                const blob = await put(`photos/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
+                    access: 'public',
+                });
+                req.file.blobUrl = blob.url; // Attach URL to req.file
+                next();
+            } catch (uploadErr) {
+                console.error('Blob upload error:', uploadErr);
+                res.status(500).json({ error: 'Failed to upload photo' });
+            }
+        });
+    } else {
+        // Use existing Disk Storage
+        upload.single('photo')(req, res, next);
+    }
+};
 
 /**
  * Middleware for insurance card upload
  */
-const uploadInsuranceCard = upload.single('insuranceCard');
+const uploadInsuranceCard = (req, res, next) => {
+    if (hasBlobStorage) {
+        const memoryUpload = multer({
+            storage: multer.memoryStorage(),
+            fileFilter: fileFilter,
+            limits: { fileSize: config.uploads.maxFileSize }
+        }).single('insuranceCard');
+
+        memoryUpload(req, res, async (err) => {
+            if (err) return res.status(400).json({ error: err.message });
+            if (!req.file) return next();
+
+            try {
+                const blob = await put(`insurance/${Date.now()}-${req.file.originalname}`, req.file.buffer, {
+                    access: 'public',
+                });
+                req.file.blobUrl = blob.url;
+                next();
+            } catch (uploadErr) {
+                console.error('Blob upload error:', uploadErr);
+                res.status(500).json({ error: 'Failed to upload insurance card' });
+            }
+        });
+    } else {
+        upload.single('insuranceCard')(req, res, next);
+    }
+};
 
 /**
  * Get photo URL after upload

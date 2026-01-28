@@ -295,10 +295,10 @@ async function startServer() {
         startScheduler();
 
         // Start Express server
-        app.listen(config.port, () => {
-            console.log(`\n✅ Server running on http://localhost:${config.port}`);
-            console.log(`📊 Admin Dashboard: http://localhost:${config.port}/admin.html`);
-            console.log(`📝 Book Appointment: http://localhost:${config.port}/booking.html`);
+        app.listen(config.port, config.host, () => {
+            console.log(`\n✅ Server running on http://${config.host}:${config.port}`);
+            console.log(`📊 Admin Dashboard: http://${config.host}:${config.port}/admin.html`);
+            console.log(`📝 Book Appointment: http://${config.host}:${config.port}/booking.html`);
             console.log(`\n💡 Press Ctrl+C to stop\n`);
         });
     } catch (error) {
@@ -314,6 +314,9 @@ process.on('SIGINT', () => {
 });
 
 // Start the server
-startServer();
+// Start the server if run directly
+if (require.main === module) {
+    startServer();
+}
 
 module.exports = app;
