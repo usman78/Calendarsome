@@ -1,0 +1,17 @@
+name: Trigger Scheduler
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel Scheduler Endpoint
+        run: |
+          # Replace with your actual Vercel URL after deployment
+          # We use a secret for the CRON_SECRET if you configured one, or just hit the public endpoint if unprotected (for MVP)
+          curl -X GET ${{ vars.VERCEL_APP_URL }}/api/cron/scheduler
