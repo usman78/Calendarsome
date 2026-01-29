@@ -4,6 +4,7 @@ const path = require('path');
 
 // Check if we are in Postgres mode (Vercel)
 const isPostgres = !!process.env.POSTGRES_URL;
+const isVercel = !!process.env.VERCEL;
 
 let dbModule;
 
@@ -11,6 +12,12 @@ if (isPostgres) {
   console.log('🔌 Using PostgreSQL database');
   dbModule = require('./db-postgres');
 } else {
+  // If we are on Vercel but don't have Postgres, we must fail fast
+  // because SQLite won't work on the read-only filesystem
+  if (isVercel) {
+    throw new Error('❌ Vercel Deployment Error: POSTGRES_URL is missing. Please connect a Vercel Postgres store to your project in the Vercel Dashboard.');
+  }
+
   console.log('🔌 Using SQLite database');
 
   // SQLite Implementation
