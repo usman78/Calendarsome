@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Settings - DermSchedule</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .settings-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            padding: 2rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+            background: var(--gray-50);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            gap: 0.75rem;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--gray-50);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-right: 3px solid var(--primary);
+        }
+
+        .settings-section {
+            display: none;
+            max-width: 800px;
+        }
+
+        .settings-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-300);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        /* List Editor Styles */
+        .list-item {
+            background: white;
+            border: 1px solid var(--gray-200);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hour-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="settings-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div style="padding: 0 1.5rem 2rem;">
+                <h2 style="font-size: 1.25rem;">Settings</h2>
+                <a href="admin.html"
+                    class="text-sm text-gray-500 hover:text-primary is-link flex items-center gap-1 mt-1">
+                    <i data-lucide="arrow-left" style="width: 14px;"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <nav>
+                <div class="nav-item active" data-section="general">
+                    <i data-lucide="settings"></i> General
+                </div>
+                <!-- <div class="nav-item" data-section="types">
+                    <i data-lucide="calendar"></i> Appt Types
+                </div> -->
+                <div class="nav-item" data-section="rules">
+                    <i data-lucide="clipboard-list"></i> Rules
+                </div>
+                <div class="nav-item" data-section="hours">
+                    <i data-lucide="clock"></i> Hours
+                </div>
+                <!-- <div class="nav-item" data-section="sms">
+                    <i data-lucide="message-square"></i> SMS Templates
+                </div> -->
+                <div class="nav-item" data-section="branding">
+                    <i data-lucide="palette"></i> Branding
+                </div>
+            </nav>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- General Section -->
+            <div id="general" class="settings-section active">
+                <div class="flex justify-between items-center mb-4">
+                    <h1>General Settings</h1>
+                    <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+                </div>
+
+                <div class="card mb-3">
+                    <h3 class="mb-2">Clinic Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Clinic Name</label>
+                            <input type="text" class="form-input" id="clinicName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Email</label>
+                            <input type="email" class="form-input" id="clinicEmail">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rules Section -->
+            <div id="rules" class="settings-section">
+                <div class="flex justify-between items-center mb-4">
+                    <h1>Booking Rules</h1>
+                    <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+                </div>
+
+                <div class="card mb-3">
+                    <h3 class="mb-2">Scheduling Constraints</h3>
+                    <div class="form-group flex justify-between items-center">
+                        <div>
+                            <label class="form-label mb-0">Allow Same-Day Booking</label>
+                            <p class="text-sm text-gray-500">Patients can book appointments for today</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="allowSameDay">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                        <div class="form-group">
+                            <label class="form-label">Minimum Notice (Hours)</label>
+                            <input type="number" class="form-input" id="minNoticeHours" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Max Booking Window (Days)</label>
+                            <input type="number" class="form-input" id="maxBookingDays" min="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <h3 class="mb-2">Confirmation & Reminders</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Confirmation Request (Hours Before)</label>
+                            <input type="number" class="form-input" id="confirmationWindowHours" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Auto-Cancel Unconfirmed (Hours)</label>
+                            <input type="number" class="form-input" id="autoCancelHours" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="mb-2">Waitlist & No-Show</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div class="form-group">
+                            <label class="form-label">Waitlist Claim Timeout (Minutes)</label>
+                            <input type="number" class="form-input" id="waitlistTimeoutMinutes" min="5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">No-Show Prevention</label>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" id="trackNoShows">
+                                <span class="text-sm">Track No-Shows</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hours Section -->
+            <div id="hours" class="settings-section">
+                <div class="flex justify-between items-center mb-4">
+                    <h1>Operating Hours</h1>
+                    <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <h3 class="mb-0">Lunch Break</h3>
+                            <p class="text-sm text-gray-500">Global break time (no appointments)</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="lunchBreakActive">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="flex gap-1 items-center" id="lunchBreakInputs">
+                        <input type="time" class="form-input" id="lunchStart">
+                        <span>to</span>
+                        <input type="time" class="form-input" id="lunchEnd">
+                    </div>
+                </div>
+
+                <div class="card" id="hoursContainer">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Branding Section -->
+            <div id="branding" class="settings-section">
+                <div class="flex justify-between items-center mb-4">
+                    <h1>Branding</h1>
+                    <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+                </div>
+
+                <div class="card">
+                    <div class="form-group">
+                        <label class="form-label">Primary Color</label>
+                        <div class="flex gap-1">
+                            <input type="color" class="form-input" id="primaryColor"
+                                style="width: 60px; padding: 0.25rem;">
+                            <input type="text" class="form-input" id="primaryColorText">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Welcome Message</label>
+                        <textarea class="form-textarea" id="welcomeMessage"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/settings.js"></script>
+</body>
+
+</html>

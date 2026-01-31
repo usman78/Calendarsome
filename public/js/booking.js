@@ -2,7 +2,7 @@
 const bookingState = {
     currentStep: 1,
     clinicId: 1, // Default demo clinic
-    patientStatus: null,
+    patientStatus: '',
     category: null,
     appointmentTypeId: null,
     appointmentTypeName: null,
@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeStep2();
     initializeStep3();
     initializeStep4();
-    initializeStep5();
-    initializeStep6();
 
     // Set minimum date to tomorrow
     const tomorrow = new Date();
@@ -35,51 +33,94 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dateInput) {
         dateInput.min = tomorrow.toISOString().split('T')[0];
     }
+
+    // Add Start Over Link
+    const container = document.querySelector('.container-narrow');
+    if (container) {
+        const startOverDiv = document.createElement('div');
+        startOverDiv.className = 'text-center mt-3';
+        startOverDiv.innerHTML = `
+            <a href="#" class="text-sm text-gray-400 hover:text-danger" onclick="if(confirm('Start over? Current details will be lost.')) window.location.reload(); return false;">
+                Start Over
+            </a>
+        `;
+        container.appendChild(startOverDiv);
+    }
+
+    // Initial icon render
+    if (window.lucide) lucide.createIcons();
 });
 
-// Step 1: Patient Status
+// Step 1: Service Selection (The Hook)
 function initializeStep1() {
-    const options = document.querySelectorAll('#step1 .option-card');
+    const categories = document.querySelectorAll('#step1 .option-card');
+    const typeSelect = document.getElementById('appointmentType');
     const nextBtn = document.getElementById('step1Next');
+    const serviceSelectionDiv = document.getElementById('serviceSelection');
 
-    options.forEach(card => {
-        card.addEventListener('click', () => {
-            options.forEach(c => c.classList.remove('selected'));
+    categories.forEach(card => {
+        card.addEventListener('click', async () => {
+            categories.forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
-            bookingState.patientStatus = card.dataset.value;
-            nextBtn.disabled = false;
+            bookingState.category = card.dataset.value;
+
+            // Show type selection and load types
+            serviceSelectionDiv.style.display = 'block';
+            await loadAppointmentTypes();
+
+            checkStep1Validity();
         });
     });
 
-    nextBtn.addEventListener('click', () => goToStep(2));
+    typeSelect.addEventListener('change', () => {
+        const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+        bookingState.appointmentTypeId = selectedOption.value;
+        bookingState.appointmentTypeName = selectedOption.text;
+        checkStep1Validity();
+    });
+
+    function checkStep1Validity() {
+        nextBtn.disabled = !(bookingState.category && bookingState.appointmentTypeId);
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (bookingState.category && bookingState.appointmentTypeId) {
+            goToStep(2);
+        }
+    });
 }
 
-// Step 2: Visit Category
+// Step 2: Availability (The Sinker)
 function initializeStep2() {
-    const options = document.querySelectorAll('#step2 .option-card');
+    const dateInput = document.getElementById('appointmentDate');
     const nextBtn = document.getElementById('step2Next');
     const backBtn = document.getElementById('step2Back');
 
-    options.forEach(card => {
-        card.addEventListener('click', () => {
-            options.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            bookingState.category = card.dataset.value;
-            nextBtn.disabled = false;
-        });
+    dateInput.addEventListener('change', async () => {
+        bookingState.appointmentDate = dateInput.value;
+        await loadAvailableSlots();
     });
 
-    nextBtn.addEventListener('click', async () => {
-        await loadAppointmentTypes();
+    nextBtn.addEventListener('click', () => {
+        // Prepare Step 3 based on category
+        const medicalDetails = document.getElementById('medicalDetails');
+        if (bookingState.category === 'medical') {
+            medicalDetails.style.display = 'block';
+        } else {
+            medicalDetails.style.display = 'none';
+        }
         goToStep(3);
     });
 
     backBtn.addEventListener('click', () => goToStep(1));
 }
 
-// Step 3: Details & Photo
+// Step 3: Commitment (The Details)
 function initializeStep3() {
-    const appointmentTypeSelect = document.getElementById('appointmentType');
+    const statusBtns = document.querySelectorAll('.status-btn');
+    const patientName = document.getElementById('patientName');
+    const patientEmail = document.getElementById('patientEmail');
+    const patientPhone = document.getElementById('patientPhone');
     const symptomsText = document.getElementById('symptoms');
     const photoUploadArea = document.getElementById('photoUploadArea');
     const photoInput = document.getElementById('photoInput');
@@ -88,108 +129,70 @@ function initializeStep3() {
     const nextBtn = document.getElementById('step3Next');
     const backBtn = document.getElementById('step3Back');
 
-    // Photo upload
-    photoUploadArea.addEventListener('click', () => photoInput.click());
-
-    photoInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            bookingState.photoFile = file;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                photoPreview.src = e.target.result;
-                photoPreview.style.display = 'block';
-                uploadPrompt.style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
+    statusBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            statusBtns.forEach(b => b.classList.remove('btn-primary'));
+            statusBtns.forEach(b => b.classList.add('btn-outline'));
+            btn.classList.remove('btn-outline');
+            btn.classList.add('btn-primary');
+            bookingState.patientStatus = btn.dataset.value;
+        });
     });
 
-    // Check for emergency keywords
+    // Photo upload same as before
+    if (photoUploadArea) {
+        photoUploadArea.addEventListener('click', () => photoInput.click());
+    }
+
+    if (photoInput) {
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                bookingState.photoFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    photoPreview.src = e.target.result;
+                    photoPreview.style.display = 'block';
+                    uploadPrompt.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     symptomsText.addEventListener('input', () => {
         bookingState.symptoms = symptomsText.value;
         checkEmergencyKeywords();
     });
 
-    appointmentTypeSelect.addEventListener('change', () => {
-        const selectedOption = appointmentTypeSelect.options[appointmentTypeSelect.selectedIndex];
-        bookingState.appointmentTypeId = selectedOption.value;
-        bookingState.appointmentTypeName = selectedOption.text;
+    nextBtn.addEventListener('click', () => {
+        bookingState.patientName = patientName.value;
+        bookingState.patientEmail = patientEmail.value;
+        bookingState.patientPhone = patientPhone.value;
+
+        if (validateStep3()) {
+            showAppointmentSummary();
+            goToStep(4);
+        }
     });
 
-    nextBtn.addEventListener('click', () => {
-        // Validate Step 3 before proceeding
-        if (!validateStep3()) {
-            return; // Don't proceed if validation fails
-        }
-        goToStep(4);
-    });
     backBtn.addEventListener('click', () => goToStep(2));
 }
 
-// Step 4: Calendar & Time
+// Step 4: Confirm (The Finish)
 function initializeStep4() {
-    const dateInput = document.getElementById('appointmentDate');
-    const nextBtn = document.getElementById('step4Next');
-    const backBtn = document.getElementById('step4Back');
-
-    dateInput.addEventListener('change', async () => {
-        bookingState.appointmentDate = dateInput.value;
-        await loadAvailableSlots();
-    });
-
-    nextBtn.addEventListener('click', () => {
-        // Show payment or insurance section based on category
-        if (bookingState.category === 'cosmetic') {
-            document.getElementById('paymentSection').style.display = 'block';
-            document.getElementById('insuranceSection').style.display = 'none';
-        } else {
-            document.getElementById('insuranceSection').style.display = 'block';
-            document.getElementById('paymentSection').style.display = 'none';
-        }
-        goToStep(5);
-    });
-
-    backBtn.addEventListener('click', () => goToStep(3));
-}
-
-// Step 5: Contact Info
-function initializeStep5() {
-    const nextBtn = document.getElementById('step5Next');
-    const backBtn = document.getElementById('step5Back');
-
-    nextBtn.addEventListener('click', () => {
-        bookingState.patientName = document.getElementById('patientName').value;
-        bookingState.patientEmail = document.getElementById('patientEmail').value;
-        bookingState.patientPhone = document.getElementById('patientPhone').value;
-
-        if (!bookingState.patientName || !bookingState.patientEmail || !bookingState.patientPhone) {
-            alert('Please fill in all contact information');
-            return;
-        }
-
-        showAppointmentSummary();
-        goToStep(6);
-    });
-
-    backBtn.addEventListener('click', () => goToStep(4));
-}
-
-// Step 6: Confirmation
-function initializeStep6() {
     const confirmBtn = document.getElementById('confirmBooking');
-    const backBtn = document.getElementById('step6Back');
+    const backBtn = document.getElementById('step4Back');
 
     confirmBtn.addEventListener('click', async () => {
         await submitBooking();
     });
 
-    backBtn.addEventListener('click', () => goToStep(5));
+    backBtn.addEventListener('click', () => goToStep(3));
 }
 
 // Helper Functions
 function goToStep(stepNumber) {
-    // Update current step
     bookingState.currentStep = stepNumber;
 
     // Hide all steps
@@ -214,7 +217,9 @@ function goToStep(stepNumber) {
         }
     });
 
-    // Scroll to top
+    // Initialize icons for new step
+    if (window.lucide) lucide.createIcons();
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -225,88 +230,24 @@ async function loadAppointmentTypes() {
 
         if (data.success) {
             const select = document.getElementById('appointmentType');
-            select.innerHTML = '<option value="">Select type...</option>';
+            select.innerHTML = '<option value="">Select a service...</option>';
 
             data.types.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type.id;
-                option.text = `${type.name} (${type.duration_mins} min)${type.requires_deposit ? ` - $${type.deposit_amount} deposit` : ''}`;
+                option.text = `${type.name} (${type.duration_mins} min)`;
                 select.appendChild(option);
             });
         }
     } catch (error) {
         console.error('Error loading appointment types:', error);
-        alert('Error loading appointment types. Please try again.');
-    }
-}
-
-function checkEmergencyKeywords() {
-    const emergencyKeywords = ['bleeding', 'rapidly growing', 'rapid growth', 'sudden', 'emergency', 'urgent', 'melanoma', 'black', 'severe pain'];
-    const text = bookingState.symptoms.toLowerCase();
-
-    bookingState.emergencyFlag = emergencyKeywords.some(keyword => text.includes(keyword));
-
-    const alert = document.getElementById('emergencyAlert');
-    if (bookingState.emergencyFlag) {
-        alert.style.display = 'block';
-    } else {
-        alert.style.display = 'none';
-    }
-}
-
-// Validate Step 3: Appointment Type and Symptoms
-function validateStep3() {
-    clearErrorMessages();
-
-    // Check if appointment type is selected
-    if (!bookingState.appointmentTypeId) {
-        showError('Please select an appointment type');
-        return false;
-    }
-
-    // For medical appointments, symptoms are required
-    if (bookingState.category === 'medical' && !bookingState.symptoms.trim()) {
-        showError('Please describe your symptoms or concern. This helps us prepare for your visit.');
-        return false;
-    }
-
-    return true;
-}
-
-// Show error message
-function showError(message) {
-    const existingError = document.getElementById('validationError');
-    if (existingError) {
-        existingError.remove();
-    }
-
-    const errorDiv = document.createElement('div');
-    errorDiv.id = 'validationError';
-    errorDiv.className = 'alert alert-danger';
-    errorDiv.style.marginTop = '1rem';
-    errorDiv.innerHTML = `<strong>⚠️ Validation Error</strong><br>${message}`;
-
-    // Insert before the buttons
-    const currentStep = document.querySelector('.booking-step.active');
-    const buttons = currentStep.querySelector('.mt-3');
-    buttons.parentNode.insertBefore(errorDiv, buttons);
-
-    // Scroll to error
-    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
-// Clear error messages
-function clearErrorMessages() {
-    const existingError = document.getElementById('validationError');
-    if (existingError) {
-        existingError.remove();
+        showError('Error loading services. Please try again.');
     }
 }
 
 async function loadAvailableSlots() {
     try {
         showLoading(true);
-
         const response = await fetch(`/api/available-slots?clinicId=${bookingState.clinicId}&appointmentTypeId=${bookingState.appointmentTypeId}&date=${bookingState.appointmentDate}`);
         const data = await response.json();
 
@@ -324,19 +265,97 @@ async function loadAvailableSlots() {
                     document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                     slotDiv.classList.add('selected');
                     bookingState.appointmentTime = slot.datetime;
-                    document.getElementById('step4Next').disabled = false;
+                    document.getElementById('step2Next').disabled = false;
                 });
 
                 timeSlotsContainer.appendChild(slotDiv);
             });
         } else {
-            timeSlotsContainer.innerHTML = '<p style="color: var(--gray-500);">No available slots for this date. Please try another day.</p>';
+            timeSlotsContainer.innerHTML = '<p style="color: var(--gray-500); grid-column: 1/-1; text-align: center;">No slots found for this date.</p>';
         }
     } catch (error) {
         console.error('Error loading slots:', error);
-        alert('Error loading available times. Please try again.');
+        showError('Error loading available times.');
     } finally {
         showLoading(false);
+    }
+}
+
+function validateStep3() {
+    clearErrorMessages();
+    let isValid = true;
+    let firstError = null;
+
+    // Helper to set invalid state
+    const setInvalid = (id, message) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.add('is-invalid');
+            // Add shake animation
+            el.style.animation = 'none';
+            el.offsetHeight; /* trigger reflow */
+            el.style.animation = 'shake 0.5s';
+        }
+        isValid = false;
+        if (!firstError) firstError = message;
+    };
+
+    const setValid = (id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('is-invalid');
+    };
+
+    // Check Patient Status (No ID, so just global check)
+    if (!bookingState.patientStatus) {
+        if (!firstError) firstError = 'Please select if you are a new or existing patient.';
+        isValid = false;
+    }
+
+    // Check Full Name
+    if (!bookingState.patientName.trim()) {
+        setInvalid('patientName', 'Please enter your full name.');
+    } else {
+        setValid('patientName');
+    }
+
+    // Check Email
+    if (!bookingState.patientEmail.trim() || !bookingState.patientEmail.includes('@')) {
+        setInvalid('patientEmail', 'Please enter a valid email address.');
+    } else {
+        setValid('patientEmail');
+    }
+
+    // Check Phone
+    if (!bookingState.patientPhone.trim()) {
+        setInvalid('patientPhone', 'Please enter your phone number.');
+    } else {
+        setValid('patientPhone');
+    }
+
+    // Check Symptoms (Medical only)
+    if (bookingState.category === 'medical') {
+        if (!bookingState.symptoms.trim()) {
+            setInvalid('symptoms', 'Please describe your symptoms.');
+        } else {
+            setValid('symptoms');
+        }
+    }
+
+    if (!isValid && firstError) {
+        showError(firstError);
+    }
+
+    return isValid;
+}
+
+function checkEmergencyKeywords() {
+    const emergencyKeywords = ['bleeding', 'rapidly growing', 'rapid growth', 'sudden', 'emergency', 'urgent', 'melanoma', 'black', 'severe pain'];
+    const text = bookingState.symptoms.toLowerCase();
+    bookingState.emergencyFlag = emergencyKeywords.some(keyword => text.includes(keyword));
+
+    const alert = document.getElementById('emergencyAlert');
+    if (alert) {
+        alert.style.display = bookingState.emergencyFlag ? 'block' : 'none';
     }
 }
 
@@ -345,39 +364,43 @@ function showAppointmentSummary() {
     const appointmentDateTime = new Date(bookingState.appointmentTime);
 
     summaryDiv.innerHTML = `
-    <div style="background: var(--gray-50); padding: 1.5rem; border-radius: var(--radius-md);">
-      <h3 style="margin-bottom: 1rem;">Appointment Details</h3>
-      <p><strong>Type:</strong> ${bookingState.appointmentTypeName}</p>
-      <p><strong>Date & Time:</strong> ${appointmentDateTime.toLocaleString()}</p>
-      <p><strong>Category:</strong> ${bookingState.category === 'medical' ? 'Medical' : 'Cosmetic'}</p>
-      <p><strong>Patient:</strong> ${bookingState.patientName}</p>
-      <p><strong>Email:</strong> ${bookingState.patientEmail}</p>
-      <p><strong>Phone:</strong> ${bookingState.patientPhone}</p>
-      ${bookingState.category === 'cosmetic' ? '<p><strong>Deposit:</strong> $50.00 (authorized, charged only on no-show)</p>' : ''}
-      ${bookingState.emergencyFlag ? '<p style="color: var(--danger);"><strong>⚠️ Emergency Flag:</strong> Clinic will be notified</p>' : ''}
+    <div style="background: var(--gray-50); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
+      <div class="flex justify-between mb-2">
+        <span class="text-gray-500">Service:</span>
+        <span class="font-semibold">${bookingState.appointmentTypeName}</span>
+      </div>
+      <div class="flex justify-between mb-2">
+        <span class="text-gray-500">Date:</span>
+        <span class="font-semibold">${appointmentDateTime.toLocaleDateString()}</span>
+      </div>
+      <div class="flex justify-between mb-2">
+        <span class="text-gray-500">Time:</span>
+        <span class="font-semibold">${appointmentDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+      </div>
+      <hr class="my-2 border-gray-200">
+      <div class="flex justify-between">
+        <span class="text-gray-500">Patient:</span>
+        <span>${bookingState.patientName}</span>
+      </div>
     </div>
   `;
+
+    // Show payment section if cosmetic
+    const paymentSection = document.getElementById('paymentSection');
+    if (paymentSection) {
+        paymentSection.style.display = bookingState.category === 'cosmetic' ? 'block' : 'none';
+    }
 }
 
 async function submitBooking() {
     try {
         showLoading(true);
 
-        // First, upload photo if exists
-        let photoUrl = null;
+        // Simple photo upload simulation (placeholder)
         if (bookingState.photoFile) {
-            const formData = new FormData();
-            formData.append('photo', bookingState.photoFile);
-
-            const photoResponse = await fetch('/api/triage', {
-                method: 'POST',
-                body: formData
-            });
-
-            // For now, we'll handle photo separately
+            // In a real app, we'd upload here. For now we just call triage.
         }
 
-        // Process triage
         const triageData = {
             clinicId: bookingState.clinicId,
             patientStatus: bookingState.patientStatus,
@@ -386,107 +409,101 @@ async function submitBooking() {
             symptoms: bookingState.symptoms,
             patientName: bookingState.patientName,
             patientEmail: bookingState.patientEmail,
-            patientPhone: bookingState.patientPhone,
-            insurancePhotoUrl: null // For MVP
+            patientPhone: bookingState.patientPhone
         };
 
-        // Create appointment
-        const appointmentData = {
-            patientId: null, // Will be created by triage
-            clinicId: bookingState.clinicId,
-            appointmentTypeId: bookingState.appointmentTypeId,
-            appointmentDatetime: bookingState.appointmentTime,
-            triageData: triageData,
-            photoUrl: photoUrl,
-            emergencyFlag: bookingState.emergencyFlag,
-            cardToken: bookingState.category === 'cosmetic' ? bookingState.cardToken : null
-        };
-
-        // For MVP, we'll call the triage endpoint first
-        const triageResponse = await fetch('/api/triage', {
+        const response = await fetch('/api/triage', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(triageData)
         });
 
-        const triageResult = await triageResponse.json();
+        const triageResult = await response.json();
 
         if (triageResult.success) {
-            // Now create appointment
-            appointmentData.patientId = triageResult.patientId;
+            const appointmentData = {
+                patientId: triageResult.patientId,
+                clinicId: bookingState.clinicId,
+                appointmentTypeId: bookingState.appointmentTypeId,
+                appointmentDatetime: bookingState.appointmentTime,
+                emergencyFlag: bookingState.emergencyFlag,
+                cardToken: bookingState.category === 'cosmetic' ? bookingState.cardToken : null
+            };
 
-            const appointmentResponse = await fetch('/api/appointments', {
+            const apptResponse = await fetch('/api/appointments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(appointmentData)
             });
 
-            const appointmentResult = await appointmentResponse.json();
+            const apptResult = await apptResponse.json();
 
-            if (appointmentResult.success) {
-                showSuccessScreen(appointmentResult);
+            if (apptResult.success) {
+                showSuccessScreen(apptResult);
             } else {
-                throw new Error(appointmentResult.error || 'Failed to create appointment');
+                throw new Error(apptResult.error || 'Booking failed');
             }
         } else {
-            throw new Error(triageResult.error || 'Failed to process triage');
+            throw new Error(triageResult.error || 'Triage failed');
         }
     } catch (error) {
-        console.error('Booking error:', error);
-        showPersistentError(`Booking failed: ${error.message}`);
+        console.error('Error submitting booking:', error);
+        showPersistentError(error.message);
     } finally {
         showLoading(false);
     }
 }
 
-function showSuccessScreen(appointmentData) {
+function showSuccessScreen(data) {
     const successDetails = document.getElementById('successDetails');
-    const appointmentDateTime = new Date(bookingState.appointmentTime);
+    const dt = new Date(bookingState.appointmentTime);
 
     successDetails.innerHTML = `
-    <div style="background: var(--success); color: white; padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
-      <h3 style="color: white; margin-bottom: 0.5rem;">Appointment #${appointmentData.appointmentId}</h3>
-      <p style="margin: 0;">${appointmentDateTime.toLocaleString()}</p>
-    </div>
-    <p style="color: var(--gray-600);">
-      We've sent confirmation details to <strong>${bookingState.patientEmail}</strong>
-    </p>
-  `;
+        <div style="background: var(--primary); color: white; padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+            <p class="text-sm opacity-80 mb-1">Appointment Reference</p>
+            <h3 class="text-2xl font-bold mb-2">#${data.appointmentId}</h3>
+            <p>${dt.toLocaleDateString()} at ${dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+    `;
 
-    // Hide all steps, show success
-    document.querySelectorAll('.booking-step').forEach(step => step.style.display = 'none');
+    document.querySelectorAll('.booking-step').forEach(s => s.style.display = 'none');
     document.getElementById('success').style.display = 'block';
     document.querySelector('.progress-bar').style.display = 'none';
+    if (window.lucide) lucide.createIcons();
 }
 
 function showLoading(show) {
     const overlay = document.getElementById('loadingOverlay');
-    if (show) {
-        overlay.classList.add('active');
-    } else {
-        overlay.classList.remove('active');
+    if (overlay) overlay.classList.toggle('active', show);
+}
+
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'validationError';
+    errorDiv.className = 'alert alert-danger mb-3 animate-in';
+    errorDiv.innerHTML = `<div class="flex gap-2"><i data-lucide="alert-circle" style="width: 20px; height: 20px;"></i> <span>${message}</span></div>`;
+
+    const currentStep = document.querySelector('.booking-step.active .card');
+    const firstBtn = currentStep.querySelector('button');
+    currentStep.insertBefore(errorDiv, firstBtn.closest('div'));
+
+    if (window.lucide) lucide.createIcons();
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function showPersistentError(message) {
+    showError(message);
+    const err = document.getElementById('validationError');
+    if (err) {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-secondary btn-sm mt-2';
+        btn.textContent = 'Dismiss';
+        btn.onclick = clearErrorMessages;
+        err.appendChild(btn);
     }
 }
 
-// Show persistent error (doesn't auto-dismiss)
-function showPersistentError(message) {
-    clearErrorMessages();
-
-    const errorDiv = document.createElement('div');
-    errorDiv.id = 'validationError';
-    errorDiv.className = 'alert alert-danger';
-    errorDiv.style.marginTop = '1rem';
-    errorDiv.innerHTML = `
-    <strong>⚠️ Error</strong><br>
-    ${message}<br>
-    <button class="btn btn-secondary" style="margin-top: 0.5rem;" onclick="clearErrorMessages()">Dismiss</button>
-  `;
-
-    // Insert at the current step
-    const currentStep = document.querySelector('.booking-step.active');
-    const buttons = currentStep.querySelector('.mt-3');
-    buttons.parentNode.insertBefore(errorDiv, buttons);
-
-    // Scroll to error
-    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+function clearErrorMessages() {
+    const err = document.getElementById('validationError');
+    if (err) err.remove();
 }

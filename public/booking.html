@@ -7,6 +7,7 @@
     <title>Book Appointment - DermSchedule</title>
     <meta name="description" content="Book your dermatology appointment with our smart triage system.">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .booking-container {
             min-height: 100vh;
@@ -236,128 +237,67 @@
             <!-- Progress Bar -->
             <div class="progress-bar">
                 <div class="progress-step active" data-step="1">
-                    <div class="progress-step-circle">1</div>
-                    <div class="progress-step-label">Patient Status</div>
+                    <div class="progress-step-circle"><i data-lucide="stethoscope"></i></div>
+                    <div class="progress-step-label">Service</div>
                 </div>
                 <div class="progress-step" data-step="2">
-                    <div class="progress-step-circle">2</div>
-                    <div class="progress-step-label">Visit Type</div>
+                    <div class="progress-step-circle"><i data-lucide="calendar"></i></div>
+                    <div class="progress-step-label">Availability</div>
                 </div>
                 <div class="progress-step" data-step="3">
-                    <div class="progress-step-circle">3</div>
+                    <div class="progress-step-circle"><i data-lucide="user-check"></i></div>
                     <div class="progress-step-label">Details</div>
                 </div>
                 <div class="progress-step" data-step="4">
-                    <div class="progress-step-circle">4</div>
-                    <div class="progress-step-label">Schedule</div>
-                </div>
-                <div class="progress-step" data-step="5">
-                    <div class="progress-step-circle">5</div>
-                    <div class="progress-step-label">Contact</div>
-                </div>
-                <div class="progress-step" data-step="6">
-                    <div class="progress-step-circle">6</div>
+                    <div class="progress-step-circle"><i data-lucide="check-circle"></i></div>
                     <div class="progress-step-label">Confirm</div>
                 </div>
             </div>
 
-            <!-- Step 1: Patient Status -->
+            <!-- New Step 1: Service Selection (The Hook) -->
             <div class="booking-step active" id="step1">
                 <div class="card">
-                    <h2 class="mb-2">Are you a new or existing patient?</h2>
-                    <div class="option-grid">
-                        <div class="option-card" data-value="new">
-                            <div class="option-icon">🆕</div>
-                            <h3>New Patient</h3>
-                            <p style="font-size: 0.875rem; color: var(--gray-600);">First time visiting</p>
-                        </div>
-                        <div class="option-card" data-value="existing">
-                            <div class="option-icon">👤</div>
-                            <h3>Existing Patient</h3>
-                            <p style="font-size: 0.875rem; color: var(--gray-600);">I've been here before</p>
-                        </div>
-                    </div>
-                    <div class="mt-3 text-right">
-                        <button class="btn btn-primary" id="step1Next" disabled>Next →</button>
-                    </div>
-                </div>
-            </div>
+                    <h2 class="mb-1">What can we help you with today?</h2>
+                    <p class="mb-3 text-gray-500">Select a category to see available services.</p>
 
-            <!-- Step 2: Visit Category -->
-            <div class="booking-step" id="step2">
-                <div class="card">
-                    <h2 class="mb-2">What type of visit is this?</h2>
                     <div class="option-grid">
                         <div class="option-card" data-value="medical">
-                            <div class="option-icon">🏥</div>
+                            <div class="option-icon text-primary"><i data-lucide="activity"></i></div>
                             <h3>Medical</h3>
                             <p style="font-size: 0.875rem; color: var(--gray-600);">Rash, mole check, acne, eczema</p>
                         </div>
                         <div class="option-card" data-value="cosmetic">
-                            <div class="option-icon">✨</div>
+                            <div class="option-icon text-accent"><i data-lucide="sparkles"></i></div>
                             <h3>Cosmetic</h3>
                             <p style="font-size: 0.875rem; color: var(--gray-600);">Botox, fillers, laser, peels</p>
                             <span class="badge badge-pending" style="margin-top: 0.5rem;">$50 deposit required</span>
                         </div>
                     </div>
-                    <div class="mt-3 flex justify-between">
-                        <button class="btn btn-secondary" id="step2Back">← Back</button>
-                        <button class="btn btn-primary" id="step2Next" disabled>Next →</button>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Step 3: Appointment Type & Details -->
-            <div class="booking-step" id="step3">
-                <div class="card">
-                    <h2 class="mb-2">Tell us about your concern</h2>
-
-                    <div class="form-group">
-                        <label class="form-label">Appointment Type</label>
-                        <select class="form-select" id="appointmentType">
-                            <option value="">Select type...</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Describe your symptoms/concern</label>
-                        <textarea class="form-textarea" id="symptoms"
-                            placeholder="Please describe what brings you in today..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Upload Photo (Optional but recommended)</label>
-                        <div class="photo-upload-area" id="photoUploadArea">
-                            <div id="uploadPrompt">
-                                <div style="font-size: 3rem; margin-bottom: 0.5rem;">📸</div>
-                                <p>Click to upload or drag and drop</p>
-                                <p style="font-size: 0.875rem; color: var(--gray-500);">PNG, JPG up to 5MB</p>
-                            </div>
-                            <img id="photoPreview" class="photo-preview" style="display: none;">
+                    <div id="serviceSelection" class="mt-4" style="display: none; animation: fadeIn 0.3s ease-out;">
+                        <div class="form-group">
+                            <label class="form-label">Specific Treatment</label>
+                            <select class="form-select" id="appointmentType">
+                                <option value="">Select a service...</option>
+                            </select>
                         </div>
-                        <input type="file" id="photoInput" accept="image/*" style="display: none;">
                     </div>
 
-                    <div id="emergencyAlert" class="alert alert-danger" style="display: none;">
-                        <strong>⚠️ Emergency Flag Detected</strong><br>
-                        Based on your description, we recommend calling the clinic directly at
-                        <strong>555-123-4567</strong> for urgent care.
-                    </div>
-
-                    <div class="mt-3 flex justify-between">
-                        <button class="btn btn-secondary" id="step3Back">← Back</button>
-                        <button class="btn btn-primary" id="step3Next">Next →</button>
+                    <div class="mt-4 text-right">
+                        <button class="btn btn-primary" id="step1Next" disabled>Next: Pick a Time <i
+                                data-lucide="arrow-right"></i></button>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 4: Calendar & Time Selection -->
-            <div class="booking-step" id="step4">
+            <!-- New Step 2: Availability (The Sinker) -->
+            <div class="booking-step" id="step2">
                 <div class="card">
-                    <h2 class="mb-2">Select Date & Time</h2>
+                    <h2 class="mb-1">Select Date & Time</h2>
+                    <p class="mb-3 text-gray-500">Pick a slot that works for you. We'll hold it while you finish.</p>
 
                     <div class="form-group">
-                        <label class="form-label">Select Date</label>
+                        <label class="form-label">Available Dates</label>
                         <input type="date" class="form-input" id="appointmentDate">
                     </div>
 
@@ -368,51 +308,101 @@
                         </div>
                     </div>
 
-                    <div class="mt-3 flex justify-between">
-                        <button class="btn btn-secondary" id="step4Back">← Back</button>
-                        <button class="btn btn-primary" id="step4Next" disabled>Next →</button>
+                    <div class="mt-4 flex justify-between">
+                        <button class="btn btn-secondary" id="step2Back"><i data-lucide="arrow-left"></i> Back</button>
+                        <button class="btn btn-primary" id="step2Next" disabled>Next: Your Details <i
+                                data-lucide="arrow-right"></i></button>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 5: Contact Info & Payment -->
-            <div class="booking-step" id="step5">
+            <!-- New Step 3: Commitment (The Details) -->
+            <div class="booking-step" id="step3">
                 <div class="card">
-                    <h2 class="mb-2">Contact Information</h2>
+                    <h2 class="mb-1">Almost there!</h2>
+                    <p class="mb-4 text-gray-500">We just need a few more details to secure your spot.</p>
 
-                    <div class="form-group">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" class="form-input" id="patientName" placeholder="John Doe" required>
+                    <div class="form-group mb-4">
+                        <label class="form-label">Patient Status</label>
+                        <div class="flex gap-2">
+                            <button type="button" class="btn btn-outline flex-1 status-btn" data-value="new">New
+                                Patient</button>
+                            <button type="button" class="btn btn-outline flex-1 status-btn"
+                                data-value="existing">Existing Patient</button>
+                        </div>
+                        <input type="hidden" id="patientStatus" value="">
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="patientEmail" placeholder="john@example.com"
-                            required>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" id="patientName" placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="patientEmail" placeholder="john@example.com">
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Phone</label>
-                        <input type="tel" class="form-input" id="patientPhone" placeholder="555-123-4567" required>
+                        <input type="tel" class="form-input" id="patientPhone" placeholder="555-123-4567">
                     </div>
 
-                    <div id="insuranceSection" style="display: none;">
-                        <h3 class="mb-1">Insurance Information</h3>
-                        <div class="alert alert-info">
-                            Medical appointments require insurance verification. Please upload a photo of your insurance
-                            card.
-                        </div>
+                    <div id="medicalDetails" style="display: none;">
                         <div class="form-group">
-                            <label class="form-label">Insurance Card Photo</label>
+                            <label class="form-label">Describe your symptoms</label>
+                            <textarea class="form-textarea" id="symptoms" placeholder="How can we help?"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Upload Photo (Optional)</label>
+                            <div class="photo-upload-area" id="photoUploadArea">
+                                <div id="uploadPrompt">
+                                    <div class="text-3xl mb-2"><i data-lucide="camera"
+                                            style="width: 32px; height: 32px;"></i></div>
+                                    <p>Tap to upload a photo</p>
+                                </div>
+                                <img id="photoPreview" class="photo-preview" style="display: none;">
+                            </div>
+                            <input type="file" id="photoInput" accept="image/*" style="display: none;">
+                        </div>
+
+                        <div id="insuranceSection">
+                            <h3 class="text-sm font-semibold mb-2">Insurance Policy</h3>
+                            <div class="alert alert-info py-2 px-3 text-sm mb-3">
+                                Medical visits require insurance. Upload your card now or bring it to the appointment.
+                            </div>
                             <input type="file" class="form-input" id="insurancePhoto" accept="image/*">
                         </div>
                     </div>
 
-                    <div id="paymentSection" style="display: none;">
-                        <h3 class="mb-1">Deposit Payment</h3>
-                        <div class="alert alert-warning">
+                    <div id="emergencyAlert" class="alert alert-danger" style="display: none;">
+                        <strong>⚠️ Urgent Care Recommended</strong><br>
+                        Please call us at <strong>555-123-4567</strong> immediately.
+                    </div>
+
+                    <div class="mt-4 flex justify-between">
+                        <button class="btn btn-secondary" id="step3Back"><i data-lucide="arrow-left"></i> Back</button>
+                        <button class="btn btn-primary" id="step3Next">Last Step: Review <i
+                                data-lucide="arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Step 4: Final Confirmation/Payment (The Finish) -->
+            <div class="booking-step" id="step4">
+                <div class="card">
+                    <h2 class="mb-1">Confirm & Secure</h2>
+                    <p class="mb-3 text-gray-500">Review your appointment details.</p>
+
+                    <div id="appointmentSummary" class="mb-4"></div>
+
+                    <div id="paymentSection" style="display: none;" class="mb-4">
+                        <h3 class="text-sm font-semibold mb-2">Secure Deposit</h3>
+                        <div class="alert alert-warning py-2 px-3 text-sm mb-3">
                             <strong>$50 deposit required</strong><br>
-                            This will be authorized now and only charged if you miss your appointment.
+                            Authorized now, only charged for no-shows.
                         </div>
                         <div class="form-group">
                             <label class="form-label">Card Number (Mock)</label>
@@ -420,30 +410,20 @@
                         </div>
                     </div>
 
-                    <div class="mt-3 flex justify-between">
-                        <button class="btn btn-secondary" id="step5Back">← Back</button>
-                        <button class="btn btn-primary" id="step5Next">Next →</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 6: Confirmation -->
-            <div class="booking-step" id="step6">
-                <div class="card">
-                    <h2 class="mb-2">Confirm Your Appointment</h2>
-
-                    <div id="appointmentSummary" class="mb-3"></div>
-
-                    <div class="alert alert-info">
-                        <strong>📱 You'll receive SMS confirmations:</strong><br>
-                        • 72 hours before: Confirmation request<br>
-                        • 48 hours before: Reminder<br>
-                        • 24 hours before: Final reminder (auto-cancel if no response)
+                    <div class="alert alert-info py-3 text-sm">
+                        <div class="flex gap-2">
+                            <i data-lucide="bell" style="width: 18px; height: 18px;"></i>
+                            <div>
+                                <strong>Smart Nudges Enabled:</strong> We'll send SMS reminders 72h, 48h, and 24h
+                                before.
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mt-3 flex justify-between">
-                        <button class="btn btn-secondary" id="step6Back">← Back</button>
-                        <button class="btn btn-success btn-lg" id="confirmBooking">✓ Confirm Booking</button>
+                    <div class="mt-4 flex justify-between">
+                        <button class="btn btn-secondary" id="step4Back"><i data-lucide="arrow-left"></i> Back</button>
+                        <button class="btn btn-success btn-lg" id="confirmBooking"><i data-lucide="check"></i> Confirm
+                            Booking</button>
                     </div>
                 </div>
             </div>
@@ -472,6 +452,10 @@
     </div>
 
     <script src="js/booking.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
 </body>
 
 </html>

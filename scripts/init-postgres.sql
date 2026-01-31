@@ -151,6 +151,13 @@ CREATE TABLE IF NOT EXISTS audit_log (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Clinic Settings
+CREATE TABLE IF NOT EXISTS clinic_settings (
+    setting_key TEXT PRIMARY KEY,
+    setting_value TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Seed Data (Demo Clinic)
 INSERT INTO clinics (name, email) VALUES ('Demo Dermatology', 'admin@demoderm.com');
 

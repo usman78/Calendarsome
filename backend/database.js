@@ -262,6 +262,15 @@ function initializeDatabase(module) {
       )
     `);
 
+    // Clinic Settings table - Key/Value store for customization
+    db.run(`
+      CREATE TABLE IF NOT EXISTS clinic_settings (
+        setting_key TEXT PRIMARY KEY,
+        setting_value TEXT NOT NULL, -- JSON string or simple value
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create indexes for better query performance
     db.run('CREATE INDEX IF NOT EXISTS idx_appointments_datetime ON appointments(appointment_datetime)');
     db.run('CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status)');

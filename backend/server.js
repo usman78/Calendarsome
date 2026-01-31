@@ -10,6 +10,8 @@ const { auditMiddleware } = require('./utils/auditLogger');
 // Import controllers
 const triageController = require('./controllers/triageController');
 const appointmentController = require('./controllers/appointmentController');
+const authRoutes = require('./routes/auth').router;
+const settingsRoutes = require('./routes/settings');
 
 // Import services
 const { sendSMS, logSMSResponse, getSMSLogs, getPendingSMSResponses } = require('./services/smsService');
@@ -41,6 +43,12 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Auth Routes
+app.use('/api/auth', authRoutes);
+
+// Settings Routes
+app.use('/api/settings', settingsRoutes);
 
 // ----- Triage Routes -----
 app.get('/api/appointment-types/:clinicId/:category', async (req, res) => {

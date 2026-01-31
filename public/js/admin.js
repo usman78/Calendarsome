@@ -3,79 +3,87 @@ let appointmentsData = [];
 let smsLogsData = [];
 
 // Initialize on page load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    initializeTabs();
-    loadDashboardData();
+  // Check Auth
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
 
-    // Refresh data every 30 seconds
-    setInterval(loadDashboardData, 30000);
+  initializeTabs();
+  loadDashboardData();
+
+  // Refresh data every 30 seconds
+  setInterval(loadDashboardData, 30000);
 });
 
 // Tab switching
 function initializeTabs() {
-    const tabs = document.querySelectorAll('.tab');
+  const tabs = document.querySelectorAll('.tab');
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.dataset.tab;
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.dataset.tab;
 
-            // Update active tab
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+      // Update active tab
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
 
-            // Update active content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById(`${tabName}Tab`).classList.add('active');
-        });
+      // Update active content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(`${tabName}Tab`).classList.add('active');
     });
+  });
 }
 
 // Load all dashboard data
 async function loadDashboardData() {
-    await Promise.all([
-        loadAppointments(),
-        loadSMSLogs(),
-        loadStats()
-    ]);
+  await Promise.all([
+    loadAppointments(),
+    loadSMSLogs(),
+    loadStats()
+  ]);
 }
 
 // Load appointments
 async function loadAppointments() {
-    try {
-        const response = await fetch('/api/appointments/clinic/1?limit=50');
-        const data = await response.json();
+  try {
+    const response = await fetch('/api/appointments/clinic/1?limit=50');
+    const data = await response.json();
 
-        if (data.success) {
-            appointmentsData = data.appointments;
-            renderAppointmentsTable();
-        }
-    } catch (error) {
-        console.error('Error loading appointments:', error);
+    if (data.success) {
+      appointmentsData = data.appointments;
+      renderAppointmentsTable();
     }
+  } catch (error) {
+    console.error('Error loading appointments:', error);
+  }
 }
 
 // Render appointments table
 function renderAppointmentsTable() {
-    const tbody = document.getElementById('appointmentsTableBody');
+  const tbody = document.getElementById('appointmentsTableBody');
 
-    if (appointmentsData.length === 0) {
-        tbody.innerHTML = `
+  if (appointmentsData.length === 0) {
+    tbody.innerHTML = `
       <tr>
         <td colspan="6" style="text-align: center; padding: 2rem; color: var(--gray-500);">
           No upcoming appointments
         </td>
       </tr>
     `;
-        return;
-    }
+    return;
+  }
 
-    tbody.innerHTML = appointmentsData.map(apt => {
-        const datetime = new Date(apt.appointment_datetime);
-        const rowClass = apt.emergency_flag ? 'emergency-row' : '';
+  tbody.innerHTML = appointmentsData.map(apt => {
+    const datetime = new Date(apt.appointment_datetime);
+    const rowClass = apt.emergency_flag ? 'emergency-row' : '';
 
-        return `
+    return `
       <tr class="${rowClass}">
         <td>#${apt.id}</td>
         <td>
@@ -97,40 +105,43 @@ function renderAppointmentsTable() {
         </td>
       </tr>
     `;
-    }).join('');
+  }).join('');
+
+  // Re-initialize icons
+  if (window.lucide) lucide.createIcons();
 }
 
 // Get status badge HTML
 function getStatusBadge(status, confirmationStatus) {
-    const badges = {
-        pending: `<span class="badge badge-pending">Pending</span>`,
-        confirmed: `<span class="badge badge-confirmed">Confirmed</span>`,
-        completed: `<span class="badge" style="background: var(--primary);">Completed</span>`,
-        'no-show': `<span class="badge badge-noshow">No-Show</span>`,
-        cancelled: `<span class="badge badge-cancelled">Cancelled</span>`
-    };
+  const badges = {
+    pending: `<span class="badge badge-pending">Pending</span>`,
+    confirmed: `<span class="badge badge-confirmed">Confirmed</span>`,
+    completed: `<span class="badge" style="background: var(--primary);">Completed</span>`,
+    'no-show': `<span class="badge badge-noshow">No-Show</span>`,
+    cancelled: `<span class="badge badge-cancelled">Cancelled</span>`
+  };
 
-    return badges[status] || status;
+  return badges[status] || status;
 }
 
 // View appointment details
 async function viewAppointment(appointmentId) {
-    try {
-        const response = await fetch(`/api/appointments/${appointmentId}`);
-        const data = await response.json();
+  try {
+    const response = await fetch(`/api/appointments/${appointmentId}`);
+    const data = await response.json();
 
-        if (data.success) {
-            const apt = data.appointment;
-            const datetime = new Date(apt.appointment_datetime);
+    if (data.success) {
+      const apt = data.appointment;
+      const datetime = new Date(apt.appointment_datetime);
 
-            let triageData = {};
-            try {
-                triageData = JSON.parse(apt.triage_data);
-            } catch (e) {
-                triageData = {};
-            }
+      let triageData = {};
+      try {
+        triageData = JSON.parse(apt.triage_data);
+      } catch (e) {
+        triageData = {};
+      }
 
-            const detailsHtml = `
+      const detailsHtml = `
         <div style="line-height: 1.8;">
           <p><strong>Appointment ID:</strong> #${apt.id}</p>
           <p><strong>Patient:</strong> ${apt.patient_name}</p>
@@ -164,44 +175,44 @@ async function viewAppointment(appointmentId) {
         </div>
       `;
 
-            document.getElementById('appointmentDetails').innerHTML = detailsHtml;
-            document.getElementById('appointmentModal').classList.add('active');
-        }
-    } catch (error) {
-        console.error('Error loading appointment:', error);
-        alert('Error loading appointment details');
+      document.getElementById('appointmentDetails').innerHTML = detailsHtml;
+      document.getElementById('appointmentModal').classList.add('active');
     }
+  } catch (error) {
+    console.error('Error loading appointment:', error);
+    alert('Error loading appointment details');
+  }
 }
 
 // Load SMS logs
 async function loadSMSLogs() {
-    try {
-        const response = await fetch('/api/sms/logs?limit=20');
-        const data = await response.json();
+  try {
+    const response = await fetch('/api/sms/logs?limit=20');
+    const data = await response.json();
 
-        if (data.success) {
-            smsLogsData = data.logs;
-            renderSMSLogs();
-        }
-    } catch (error) {
-        console.error('Error loading SMS logs:', error);
+    if (data.success) {
+      smsLogsData = data.logs;
+      renderSMSLogs();
     }
+  } catch (error) {
+    console.error('Error loading SMS logs:', error);
+  }
 }
 
 // Render SMS logs
 function renderSMSLogs() {
-    const container = document.getElementById('smsLogContainer');
+  const container = document.getElementById('smsLogContainer');
 
-    if (smsLogsData.length === 0) {
-        container.innerHTML = '<p style="color: var(--gray-500); text-align: center; padding: 2rem;">No SMS messages yet</p>';
-        return;
-    }
+  if (smsLogsData.length === 0) {
+    container.innerHTML = '<p style="color: var(--gray-500); text-align: center; padding: 2rem;">No SMS messages yet</p>';
+    return;
+  }
 
-    container.innerHTML = smsLogsData.map(sms => {
-        const sentTime = new Date(sms.sent_at).toLocaleString();
-        const hasResponse = sms.response !== null;
+  container.innerHTML = smsLogsData.map(sms => {
+    const sentTime = new Date(sms.sent_at).toLocaleString();
+    const hasResponse = sms.response !== null;
 
-        return `
+    return `
       <div class="sms-log-item ${hasResponse ? 'response' : 'sent'}">
         <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
           <strong>${sms.recipient_phone}</strong>
@@ -223,12 +234,12 @@ function renderSMSLogs() {
         `}
       </div>
     `;
-    }).join('');
+  }).join('');
 }
 
 // Respond to SMS
 function respondToSMS(smsId, appointmentId) {
-    const modalContent = `
+  const modalContent = `
     <div>
       <p style="margin-bottom: 1.5rem;">Simulate a patient response to this SMS confirmation:</p>
       
@@ -247,126 +258,126 @@ function respondToSMS(smsId, appointmentId) {
     </div>
   `;
 
-    document.getElementById('smsModalContent').innerHTML = modalContent;
-    document.getElementById('smsModal').classList.add('active');
+  document.getElementById('smsModalContent').innerHTML = modalContent;
+  document.getElementById('smsModal').classList.add('active');
 }
 
 // Send SMS response
 async function sendSMSResponse(smsId, appointmentId, response) {
-    try {
-        // Log the SMS response
-        await fetch(`/api/sms/${smsId}/respond`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ response })
-        });
+  try {
+    // Log the SMS response
+    await fetch(`/api/sms/${smsId}/respond`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ response })
+    });
 
-        // Process confirmation
-        if (appointmentId) {
-            await fetch(`/api/confirmations/${appointmentId}/respond`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ response })
-            });
-        }
-
-        closeModal('smsModal');
-
-        // Reload data
-        await loadDashboardData();
-
-        alert(`Response "${response}" processed successfully!`);
-    } catch (error) {
-        console.error('Error sending response:', error);
-        alert('Error processing response');
+    // Process confirmation
+    if (appointmentId) {
+      await fetch(`/api/confirmations/${appointmentId}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ response })
+      });
     }
+
+    closeModal('smsModal');
+
+    // Reload data
+    await loadDashboardData();
+
+    alert(`Response "${response}" processed successfully!`);
+  } catch (error) {
+    console.error('Error sending response:', error);
+    alert('Error processing response');
+  }
 }
 
 // Load stats
 async function loadStats() {
-    const todayTotal = appointmentsData.length;
-    const pending = appointmentsData.filter(a => a.status === 'pending').length;
-    const confirmed = appointmentsData.filter(a => a.status === 'confirmed').length;
-    const emergency = appointmentsData.filter(a => a.emergency_flag === 1).length;
+  const todayTotal = appointmentsData.length;
+  const pending = appointmentsData.filter(a => a.status === 'pending').length;
+  const confirmed = appointmentsData.filter(a => a.status === 'confirmed').length;
+  const emergency = appointmentsData.filter(a => a.emergency_flag === 1).length;
 
-    document.getElementById('statTodayTotal').textContent = todayTotal;
-    document.getElementById('statPending').textContent = pending;
-    document.getElementById('statConfirmed').textContent = confirmed;
-    document.getElementById('statEmergency').textContent = emergency;
+  document.getElementById('statTodayTotal').textContent = todayTotal;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statConfirmed').textContent = confirmed;
+  document.getElementById('statEmergency').textContent = emergency;
 }
 
 // Mark appointment as confirmed
 async function markAsConfirmed(appointmentId) {
-    try {
-        await fetch(`/api/appointments/${appointmentId}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'confirmed' })
-        });
+  try {
+    await fetch(`/api/appointments/${appointmentId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'confirmed' })
+    });
 
-        await loadDashboardData();
-        alert('Appointment confirmed!');
-    } catch (error) {
-        console.error('Error confirming appointment:', error);
-        alert('Error confirming appointment');
-    }
+    await loadDashboardData();
+    alert('Appointment confirmed!');
+  } catch (error) {
+    console.error('Error confirming appointment:', error);
+    alert('Error confirming appointment');
+  }
 }
 
 // Mark as completed
 async function markAsCompleted(appointmentId) {
-    if (confirm('Mark this appointment as completed?')) {
-        try {
-            await fetch(`/api/appointments/${appointmentId}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'completed' })
-            });
+  if (confirm('Mark this appointment as completed?')) {
+    try {
+      await fetch(`/api/appointments/${appointmentId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'completed' })
+      });
 
-            closeModal('appointmentModal');
-            await loadDashboardData();
-            alert('Appointment marked as completed!');
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error updating appointment');
-        }
+      closeModal('appointmentModal');
+      await loadDashboardData();
+      alert('Appointment marked as completed!');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error updating appointment');
     }
+  }
 }
 
 // Mark as no-show
 async function markAsNoShow(appointmentId) {
-    if (confirm('Mark this appointment as no-show? Deposit will be charged if applicable.')) {
-        try {
-            await fetch(`/api/appointments/${appointmentId}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: 'no-show' })
-            });
+  if (confirm('Mark this appointment as no-show? Deposit will be charged if applicable.')) {
+    try {
+      await fetch(`/api/appointments/${appointmentId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'no-show' })
+      });
 
-            // Charge deposit if needed
-            await fetch(`/api/payments/${appointmentId}/charge`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reason: 'no-show' })
-            });
+      // Charge deposit if needed
+      await fetch(`/api/payments/${appointmentId}/charge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'no-show' })
+      });
 
-            closeModal('appointmentModal');
-            await loadDashboardData();
-            alert('Appointment marked as no-show. Deposit charged if applicable.');
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error updating appointment');
-        }
+      closeModal('appointmentModal');
+      await loadDashboardData();
+      alert('Appointment marked as no-show. Deposit charged if applicable.');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error updating appointment');
     }
+  }
 }
 
 // Close modal
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+  document.getElementById(modalId).classList.remove('active');
 }
 
 // Close modal on background click
 document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('modal')) {
-        e.target.classList.remove('active');
-    }
+  if (e.target.classList.contains('modal')) {
+    e.target.classList.remove('active');
+  }
 });

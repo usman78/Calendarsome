@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - DermSchedule</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .dashboard-container {
             min-height: 100vh;
@@ -213,8 +214,10 @@
                         <p style="color: var(--gray-600); margin: 0;">Demo Dermatology Clinic</p>
                     </div>
                     <div>
+                        <a href="settings.html" class="btn btn-secondary" style="margin-right: 0.5rem;">
+                            <i data-lucide="settings" style="width: 18px; margin-right: 4px;"></i> Settings
+                        </a>
                         <a href="booking.html" class="btn btn-primary">+ New Appointment</a>
-                        <a href="index.html" class="btn btn-secondary" style="margin-left: 0.5rem;">Home</a>
                     </div>
                 </div>
             </div>
@@ -224,22 +227,34 @@
             <!-- Stats Row -->
             <div class="stats-row">
                 <div class="stat-card primary">
-                    <div class="stat-value" id="statTodayTotal">0</div>
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="stat-value" id="statTodayTotal">0</div>
+                        <i data-lucide="calendar" class="text-primary"></i>
+                    </div>
                     <div class="stat-label">Today's Appointments</div>
                 </div>
 
                 <div class="stat-card warning">
-                    <div class="stat-value" id="statPending">0</div>
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="stat-value" id="statPending">0</div>
+                        <i data-lucide="clock" class="text-warning" style="color: var(--warning);"></i>
+                    </div>
                     <div class="stat-label">Pending Confirmations</div>
                 </div>
 
                 <div class="stat-card success">
-                    <div class="stat-value" id="statConfirmed">0</div>
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="stat-value" id="statConfirmed">0</div>
+                        <i data-lucide="check-circle" class="text-success"></i>
+                    </div>
                     <div class="stat-label">Confirmed</div>
                 </div>
 
                 <div class="stat-card danger">
-                    <div class="stat-value" id="statEmergency">0</div>
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="stat-value" id="statEmergency">0</div>
+                        <i data-lucide="alert-triangle" class="text-danger"></i>
+                    </div>
                     <div class="stat-label">Emergency Flags</div>
                 </div>
             </div>
@@ -247,9 +262,20 @@
             <!-- Tabs -->
             <div class="tab-container">
                 <div class="tabs">
-                    <button class="tab active" data-tab="appointments">Appointments</button>
-                    <button class="tab" data-tab="sms">SMS Simulator</button>
-                    <button class="tab" data-tab="waitlist">Waitlist</button>
+                    <button class="tab active" data-tab="appointments">
+                        <i data-lucide="list"
+                            style="width: 18px; height: 18px; vertical-align: middle; margin-right: 4px;"></i>
+                        Appointments
+                    </button>
+                    <button class="tab" data-tab="sms">
+                        <i data-lucide="message-square"
+                            style="width: 18px; height: 18px; vertical-align: middle; margin-right: 4px;"></i> SMS
+                        Simulator
+                    </button>
+                    <button class="tab" data-tab="waitlist">
+                        <i data-lucide="user-plus"
+                            style="width: 18px; height: 18px; vertical-align: middle; margin-right: 4px;"></i> Waitlist
+                    </button>
                 </div>
             </div>
 
@@ -340,6 +366,10 @@
     </div>
 
     <script src="js/admin.js"></script>
+    <script>
+        // Initial icon render
+        lucide.createIcons();
+    </script>
 </body>
 
 </html>
